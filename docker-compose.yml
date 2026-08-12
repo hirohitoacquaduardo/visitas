@@ -16,7 +16,7 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-    command: sh -c "npm install && npm start"
+    command: sh -c "npm install --prefer-offline --no-audit && npm start"
     ports:
       - "3000:3000"
     environment:

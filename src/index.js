@@ -4,6 +4,10 @@ const pool = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
+
 app.get('/', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
@@ -12,8 +16,4 @@ app.get('/', async (req, res) => {
     console.error(err);
     res.status(500).send('Error de conexión');
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
