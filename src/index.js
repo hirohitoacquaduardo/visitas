@@ -13,11 +13,23 @@ app.use(express.json());
 // Rutas
 app.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({ message: 'Backend conectado a la BD', time: result.rows[0].now });
+    // Crea la tabla automáticamente si no existe en Render
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visitas (
+        num_exp CHAR(10) NOT NULL PRIMARY KEY,
+        tipo_visita CHAR(2) NOT NULL,
+        fec_aper DATE NOT NULL,
+        fec_cier DATE,
+        estatus CHAR(2) NOT NULL DEFAULT 'ab',
+        visitado VARCHAR(100),
+        tm_control TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        observacion TEXT
+      );
+    `);
+    res.json({ message: 'Backend conectado a la BD y tabla verificada' });
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error de conexión');
+    res.status(500).send('Error de conexión con la BD');
   }
 });
 
