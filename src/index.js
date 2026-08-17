@@ -1,13 +1,16 @@
 const express = require('express');
-const pool = require('./db');
+const cors = require('cors'); // Requerir CORS
+const pool = require('../config/db');
+const visitasRouter = require('./routes/visitas');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
+// Middlewares
+app.use(cors()); // Habilita CORS para conectar el HTML/Frontend
+app.use(express.json());
 
+// Rutas
 app.get('/', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
@@ -16,4 +19,11 @@ app.get('/', async (req, res) => {
     console.error(err);
     res.status(500).send('Error de conexión');
   }
+});
+
+app.use('/visitas', visitasRouter);
+
+// Iniciar servidor
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
