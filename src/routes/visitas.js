@@ -17,28 +17,73 @@ router.post('/', async (req, res) => {
   const { visitado, tipo_visita, observacion, fec_aper, estatus } = req.body;
   
   // Genera un código único de 10 caracteres (Ej: 2026000001)
-  const num_exp = `${new Date().getFullYear()}${Math.floor(100000 + Math.random() * 900000)}`;
+  const num_expediente = `${new Date().getFullYear()}${Math.floor(100000 + Math.random() * 900000)}`;
 
   try {
     const result = await pool.query(
-      `INSERT INTO visitas (num_exp, tipo_visita, fec_aper, estatus, visitado, observacion) 
+      `INSERT INTO visitas (num_expediente, tipo_visita, fec_aper, estatus, visitado, observacion) 
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [num_exp, tipo_visita, fec_aper, estatus || 'ab', visitado, observacion]
+      [num_expediente, tipo_visita, fec_aper, estatus || 'ab', visitado, observacion]
     );
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al insertar visita:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET visita por número de expediente
+router.get('/:id', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM visitas WHERE num_expediente = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Expediente no encontrado' });
+    }
+    res.status(200).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET visita por número de expediente (id)
-router.get('/:id', async (req, res) => {
+// PUT actualizar estatus, fecha de cierre y tm_control
+router.put('/:id', async (req, res) => {
+  const { estatus, fec_cier, tm_control } = req.body;
+
   try {
-    const result = await pool.query('SELECT * FROM visitas WHERE num_exp = $1', [req.params.id]);
+    const result = await pool.query(
+      `UPDATE visitas
+       SET estatus = COALESCE($1, estatus),
+           fec_cier = COALESCE($2, fec_cier),
+           tm_control = COALESCE($3, tm_control)
+       WHERE num_expediente = $4
+       RETURNING *`,
+      [estatus, fec_cier, tm_control, req.params.id]
+    );
+
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Expediente no encontrado' });
+      return res.status(404).json({ message: 'Visita no encontrada' });
     }
+
     res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al actualizar visita:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE eliminar una visita
+router.delete('/:id', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM visitas WHERE num_expediente = $1 RETURNING *',
+      [req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Visita no encontrada' });
+    }
+
+    res.status(200).json({ message: 'Visita eliminada' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

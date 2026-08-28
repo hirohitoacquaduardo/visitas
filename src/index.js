@@ -16,7 +16,7 @@ app.get('/', async (req, res) => {
     // Crea la tabla automáticamente si no existe en Render
     await pool.query(`
       CREATE TABLE IF NOT EXISTS visitas (
-        num_exp CHAR(10) NOT NULL PRIMARY KEY,
+        num_expedientegit CHAR(10) NOT NULL PRIMARY KEY,
         tipo_visita CHAR(2) NOT NULL,
         fec_aper DATE NOT NULL,
         fec_cier DATE,

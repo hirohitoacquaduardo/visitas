@@ -27,12 +27,12 @@ exports.getVisitaById = async (req, res) => {
 
 // Crear nueva visita
 exports.createVisita = async (req, res) => {
-  const { id, codigo, nombre, rfc, estatus, tipo_visita, tm_control, numexp, fec_aper, fec_cier, visitado, observacion } = req.body;
+  const { id, codigo, nombre, rfc, estatus, tipo_visita, tm_control, num_expediente, fec_aper, fec_cier, visitado, observacion } = req.body;
   try {
     const result = await pool.query(
-      `INSERT INTO visitas (id, codigo, nombre, rfc, estatus, tipo_visita, tm_control, numexp, fec_aper, fec_cier, visitado, observacion)
+      `INSERT INTO visitas (id, codigo, nombre, rfc, estatus, tipo_visita, tm_control, num_expediente, fec_aper, fec_cier, visitado, observacion)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-      [id, codigo, nombre, rfc, estatus, tipo_visita, tm_control, numexp, fec_aper, fec_cier, visitado, observacion]
+      [id, codigo, nombre, rfc, estatus, tipo_visita, tm_control, num_expediente, fec_aper, fec_cier, visitado, observacion]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -43,12 +43,12 @@ exports.createVisita = async (req, res) => {
 // Actualizar visita
 exports.updateVisita = async (req, res) => {
   const { id } = req.params;
-  const { codigo, nombre, rfc, estatus, tipo_visita, tm_control, numexp, fec_aper, fec_cier, visitado, observacion } = req.body;
+  const { codigo, nombre, rfc, estatus, tipo_visita, tm_control, num_expediente, fec_aper, fec_cier, visitado, observacion } = req.body;
   try {
     const result = await pool.query(
-      `UPDATE visitas SET codigo=$1, nombre=$2, rfc=$3, estatus=$4, tipo_visita=$5, tm_control=$6, numexp=$7, fec_aper=$8, fec_cier=$9, visitado=$10, observacion=$11
+      `UPDATE visitas SET codigo=$1, nombre=$2, rfc=$3, estatus=$4, tipo_visita=$5, tm_control=$6, num_expediente=$7, fec_aper=$8, fec_cier=$9, visitado=$10, observacion=$11
        WHERE id=$12 RETURNING *`,
-      [codigo, nombre, rfc, estatus, tipo_visita, tm_control, numexp, fec_aper, fec_cier, visitado, observacion, id]
+      [codigo, nombre, rfc, estatus, tipo_visita, tm_control, num_expediente, fec_aper, fec_cier, visitado, observacion, id]
     );
     if (result.rows.length > 0) {
       res.json(result.rows[0]);
