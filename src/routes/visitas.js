@@ -14,10 +14,17 @@ router.get('/', async (req, res) => {
 
 // POST crear una nueva visita en PostgreSQL
 router.post('/', async (req, res) => {
-  const { id_visitado, tipo_visita, observacion, fec_aper, control_estatus, fec_cier, tm_control, nombre_empleado } = req.body;
-  
-  // Genera un código único de 10 caracteres (Ej: 2026000001)
-  const num_expediente = `${new Date().getFullYear()}${Math.floor(100000 + Math.random() * 900000)}`;
+  const { num_expediente, id_visitado, tipo_visita, observacion, fec_aper, control_estatus, fec_cier, tm_control, nombre_empleado } = req.body;
+
+  // Validación: tipo_visita siempre debe tener valor
+  if (!tipo_visita) {
+    return res.status(400).json({ error: 'El campo tipo_visita es obligatorio' });
+  }
+
+  // Validación: num_expediente debe venir en el body (ya no se genera automático)
+  if (!num_expediente) {
+    return res.status(400).json({ error: 'El campo num_expediente es obligatorio y debe insertarse manualmente' });
+  }
 
   try {
     const result = await pool.query(
