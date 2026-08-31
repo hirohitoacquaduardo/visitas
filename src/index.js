@@ -16,14 +16,15 @@ app.get('/', async (req, res) => {
     // Crea la tabla automáticamente si no existe en Render
     await pool.query(`
       CREATE TABLE IF NOT EXISTS visitas (
-        num_expedientegit CHAR(10) NOT NULL PRIMARY KEY,
         tipo_visita CHAR(2) NOT NULL,
         fec_aper DATE NOT NULL,
         fec_cier DATE,
-        estatus CHAR(2) NOT NULL DEFAULT 'ab',
-        visitado VARCHAR(100),
+        control_estatus CHAR(2) NOT NULL DEFAULT 'ab',
+        id_visitado VARCHAR(100),
         tm_control TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        observacion TEXT
+        observacion TEXT,
+        num_expediente VARCHAR(10) NOT NULL PRIMARY KEY,
+        nombre_empleado VARCHAR(100)
       );
     `);
     res.json({ message: 'Backend conectado a la BD y tabla verificada' });

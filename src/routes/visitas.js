@@ -14,16 +14,16 @@ router.get('/', async (req, res) => {
 
 // POST crear una nueva visita en PostgreSQL
 router.post('/', async (req, res) => {
-  const { visitado, tipo_visita, observacion, fec_aper, estatus } = req.body;
+  const { id_visitado, tipo_visita, observacion, fec_aper, control_estatus, fec_cier, tm_control, nombre_empleado } = req.body;
   
   // Genera un código único de 10 caracteres (Ej: 2026000001)
   const num_expediente = `${new Date().getFullYear()}${Math.floor(100000 + Math.random() * 900000)}`;
 
   try {
     const result = await pool.query(
-      `INSERT INTO visitas (num_expediente, tipo_visita, fec_aper, estatus, visitado, observacion) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [num_expediente, tipo_visita, fec_aper, estatus || 'ab', visitado, observacion]
+      `INSERT INTO visitas (num_expediente, tipo_visita, fec_aper, fec_cier, control_estatus, id_visitado, tm_control, observacion, nombre_empleado)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [num_expediente, tipo_visita, fec_aper, fec_cier, control_estatus || 'ab', id_visitado, tm_control, observacion, nombre_empleado]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -47,17 +47,17 @@ router.get('/:id', async (req, res) => {
 
 // PUT actualizar estatus, fecha de cierre y tm_control
 router.put('/:id', async (req, res) => {
-  const { estatus, fec_cier, tm_control } = req.body;
+  const { control_estatus, fec_cier, tm_control } = req.body;
 
   try {
     const result = await pool.query(
       `UPDATE visitas
-       SET estatus = COALESCE($1, estatus),
+       SET control_estatus = COALESCE($1, control_estatus),
            fec_cier = COALESCE($2, fec_cier),
            tm_control = COALESCE($3, tm_control)
        WHERE num_expediente = $4
        RETURNING *`,
-      [estatus, fec_cier, tm_control, req.params.id]
+      [control_estatus, fec_cier, tm_control, req.params.id]
     );
 
     if (result.rows.length === 0) {
