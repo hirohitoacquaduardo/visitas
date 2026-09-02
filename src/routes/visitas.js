@@ -11,7 +11,31 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
+// GET todas las visitas con JOIN
+router.get('/', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT v.num_expediente,
+             v.tipo_visita,
+             v.fec_aper,
+             v.fec_cier,
+             v.control_estatus,
+             v.nombre_empleado,
+             v.observacion,
+             c.id_visitado,
+             c.nombre_visitado,
+             c.rfc
+      FROM visitas v
+      LEFT JOIN control_visitados c
+             ON v.id_visitado = c.id_visitado
+      ORDER BY v.fec_aper DESC
+    `);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error al listar visitas:", err);
+    res.status(500).json({ error: "Error al listar visitas" });
+  }
+});
 // POST crear una nueva visita en PostgreSQL
 router.post('/', async (req, res) => {
   const { num_expediente, id_visitado, tipo_visita, observacion, fec_aper, control_estatus, fec_cier, tm_control, nombre_empleado } = req.body;
