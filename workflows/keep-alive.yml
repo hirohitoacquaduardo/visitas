@@ -1,0 +1,20 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Se ejecuta automáticamente todos los lunes y jueves a las 00:00 UTC
+    - cron: '0 0 * * 1,4'
+  workflow_dispatch: # Permite probarlo manualmente desde GitHub
+
+jobs:
+  ping-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar cliente de PostgreSQL
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Consultar Supabase
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          psql "$DATABASE_URL" -c "SELECT NOW();"

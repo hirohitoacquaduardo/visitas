@@ -20,7 +20,16 @@ app.use(express.json()); // Corregido: express.json() en lugar de json()
 // Rutas
 app.get('/', async (req, res) => {
   try {
-    // Crea la tabla automáticamente si no existe en Supabase
+    // 1. Crear primero la tabla dependiente (control_visitados)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS control_visitados (
+        id_visitado VARCHAR(10) PRIMARY KEY,
+        nombre_visitado VARCHAR(100) NOT NULL,
+        rfc VARCHAR(13)
+      );
+    `);
+
+    // 2. Crear la tabla principal (visitas) que hace referencia a control_visitados
     await pool.query(`
       CREATE TABLE IF NOT EXISTS visitas (
         num_expediente VARCHAR(10) PRIMARY KEY,  
@@ -28,7 +37,7 @@ app.get('/', async (req, res) => {
         fec_aper DATE NOT NULL,                   
         fec_cier DATE,                            
         control_estatus CHAR(2) NOT NULL DEFAULT 'ab', 
-        id_visitado CHAR(10) NOT NULL,            
+        id_visitado VARCHAR(10) NOT NULL,            
         tm_control TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         observacion TEXT,                         
         nombre_empleado VARCHAR(100),
@@ -37,15 +46,14 @@ app.get('/', async (req, res) => {
             ON UPDATE CASCADE
             ON DELETE RESTRICT
       );
-    `); // Corregido: pool.query() en lugar de query()
+    `);
 
-    res.json({ message: 'Backend conectado a la BD y tabla verificada' });
+    res.json({ message: 'Backend conectado a Supabase y tablas verificadas' });
   } catch (err) {
     console.error(err);
     res.status(500).send('Error de conexión con la BD');
   }
 });
-
 app.use('/visitas', visitasRouter);
 
 // Iniciar servidor
