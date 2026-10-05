@@ -1,3 +1,34 @@
+const express = require('express');
+const router = express.Router();
+const pool = require('../../config/db'); // Ajusta la ruta a tu db.js
+
+// GET todas las visitas con JOIN
+router.get('/', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT v.num_expediente,
+             v.tipo_visita,
+             v.fec_aper,
+             v.fec_cier,
+             v.control_estatus,
+             v.nombre_empleado,
+             v.observacion,
+             c.id_visitado,
+             c.nombre_visitado,
+             c.rfc
+      FROM visitas v
+      LEFT JOIN control_visitados c
+             ON v.id_visitado = c.id_visitado
+      ORDER BY v.fec_aper DESC
+    `);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error al listar visitas:", err);
+    res.status(500).json({ error: "Error al listar visitas" });
+  }
+});
+
+// POST crear una nueva visita
 router.post('/', async (req, res) => {
   const { num_expediente, nombre_visitado, rfc, tipo_visita, observacion, fec_aper, fec_cier, nombre_empleado, control_estatus } = req.body;
 
@@ -6,7 +37,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // Generar un id_visitado de 10 caracteres (ejemplo: primeros 10 del RFC)
+    // Generar id_visitado (ejemplo: primeros 10 caracteres del RFC)
     const idVisitado = rfc.substring(0, 10);
 
     // Insertar o actualizar en control_visitados
@@ -42,3 +73,65 @@ router.post('/', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// GET visita por número de expediente
+router.get('/:id', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT v.num_expediente, v.tipo_visita, v.fec_aper, v.fec_cier, v.control_estatus,
+              v.nombre_empleado, v.observacion,
+              c.id_visitado, c.nombre_visitado, c.rfc
+       FROM visitas v
+       LEFT JOIN control_visitados c ON v.id_visitado = c.id_visitado
+       WHERE v.num_expediente = $1`,
+      [req.params.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Expediente no encontrado' });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT actualizar estatus y fecha de cierre
+router.put('/:id', async (req, res) => {
+  const { control_estatus, fec_cier, tm_control } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE visitas
+       SET control_estatus = COALESCE($1, control_estatus),
+           fec_cier = COALESCE($2, fec_cier),
+           tm_control = COALESCE($3, tm_control)
+       WHERE num_expediente = $4
+       RETURNING *`,
+      [control_estatus, fec_cier, tm_control, req.params.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Visita no encontrada' });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al actualizar visita:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE eliminar una visita
+router.delete('/:id', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM visitas WHERE num_expediente = $1 RETURNING *',
+      [req.params.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Visita no encontrada' });
+    }
+    res.status(200).json({ message: 'Visita eliminada' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;

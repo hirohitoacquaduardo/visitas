@@ -1,11 +1,13 @@
 const { Pool } = require('pg');
 
+// Detecta si se proporcionó una URL completa o si DB_HOST contiene la URL de Postgres
 const databaseUrl = process.env.DATABASE_URL || (
   process.env.DB_HOST && process.env.DB_HOST.startsWith('postgres')
     ? process.env.DB_HOST
     : null
 );
 
+// Configuración base de conexión con soporte SSL obligatorio para Supabase
 const connectionConfig = databaseUrl
   ? {
       connectionString: databaseUrl,
@@ -13,14 +15,17 @@ const connectionConfig = databaseUrl
     }
   : {
       host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
+      port: process.env.DB_PORT || 5432,
       database: process.env.DB_NAME,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
+      ssl: { rejectUnauthorized: false }, // Habilita SSL para variables individuales
     };
 
+// Pool principal
 const mainPool = new Pool(connectionConfig);
 
+// Pool de lectura
 const readPool = new Pool(
   databaseUrl
     ? connectionConfig
@@ -31,6 +36,7 @@ const readPool = new Pool(
       }
 );
 
+// Pool de escritura
 const writePool = new Pool(
   databaseUrl
     ? connectionConfig
